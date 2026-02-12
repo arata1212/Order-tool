@@ -1,0 +1,27 @@
+.app-container {
+  padding: 40px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: sans-serif;
+}
+
+.section-title {
+  margin-top: 32px;
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.output-grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.select-box {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  margin-top: 8px;
+}
