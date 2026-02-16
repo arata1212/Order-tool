@@ -35,9 +35,20 @@ function drawTextJP(
 /* =========================
    日付
 ========================= */
-function formatDate(dateInput: string | Date | undefined | null) {
+function formatDate(dateInput: string | number | Date | undefined | null) {
   if (!dateInput) return ''
 
+  // ① YYYYMMDD形式（例: 20260209）の場合
+  const raw = String(dateInput)
+
+  if (/^\d{8}$/.test(raw)) {
+    const yyyy = raw.slice(0, 4)
+    const mm = raw.slice(4, 6)
+    const dd = raw.slice(6, 8)
+    return `${yyyy}/${mm}/${dd}`
+  }
+
+  // ② 通常のDate or 文字列の場合
   const date = new Date(dateInput)
 
   const yyyy = date.getFullYear()
@@ -46,6 +57,7 @@ function formatDate(dateInput: string | Date | undefined | null) {
 
   return `${yyyy}/${mm}/${dd}`
 }
+
 
 /* =========================
    右揃え
@@ -97,11 +109,12 @@ export async function exportOrderConfirmationPdf(row: WorkRow) {
     // ★ 座標確認したいときだけON
     // drawGuide(page)
 
+    
     /* ---------- 計算 ---------- */
     const items = [
       {
         quantity: row.数量 ?? 0,
-        unitPrice: row.金額 ?? 0,
+        unitPrice: row.単価 ?? 0,
       },
     ]
 
@@ -155,7 +168,7 @@ export async function exportOrderConfirmationPdf(row: WorkRow) {
 
     /* ---------- 明細 ---------- */
     drawTextJP(page, row.数量, 308, 498, 10, japaneseFont)
-    drawTextJP(page, row.金額, 400, 498, 10, japaneseFont)
+    drawTextJP(page, row.単価, 400, 498, 10, japaneseFont)
 
     if (lineTotals[0] != null) {
       drawRightAlignedTextJP( 

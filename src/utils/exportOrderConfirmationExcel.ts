@@ -24,13 +24,6 @@ export async function exportOrderConfirmationExcel(row: WorkRow) {
   // ② 基本情報
   setCell('F6', row.顧客名)
   setCell('F7', row.顧客先代表取締役名)
-  const dateCell = sheet.getCell('G3')
-  dateCell.value = new Date(row.日付)
-  dateCell.numFmt = 'yyyy/mm/dd'
-  dateCell.alignment = {
-  ...dateCell.alignment,
-  horizontal: 'left',
-  }
   setCell('G2', row.No)
 
   setCell('B6', row.案件名)
@@ -50,11 +43,32 @@ export async function exportOrderConfirmationExcel(row: WorkRow) {
   setCell('A35', row.支払い)
   setCell('A38', row.その他)
 
+  // 日付
+  const dateCell = sheet.getCell('G3')
+
+  if (row.日付) {
+    const rawDate = String(row.日付)
+
+    if (rawDate.length === 8) {
+      const year = Number(rawDate.slice(0, 4))
+      const month = Number(rawDate.slice(4, 6)) - 1
+      const day = Number(rawDate.slice(6, 8))
+
+      dateCell.value = new Date(Date.UTC(year, month, day))
+      dateCell.numFmt = 'yyyy/mm/dd'
+    }
+  }
+
+  dateCell.alignment = {
+    horizontal: 'left',
+  }
+
+
   // ③ 計算
   const items = [
     {
       quantity: row.数量,
-      unitPrice: row.金額,
+      unitPrice: row.単価,
     },
   ]
 
@@ -62,7 +76,7 @@ export async function exportOrderConfirmationExcel(row: WorkRow) {
 
   // ④ 数値
   setCell('D15', row.数量)
-  setCell('F15', row.金額)
+  setCell('F15', row.単価)
   setCell('G15', lineTotals[0])
 
   setCell('G22', subtotal)

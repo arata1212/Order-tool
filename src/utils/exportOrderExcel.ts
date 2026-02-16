@@ -1,8 +1,12 @@
 import ExcelJS from 'exceljs'
 import type { WorkRow } from '../types/workRow'
 import { calcOrder } from './calcOrder'
+import type { TemplateSettingsType } from '../types/template'
 
-export async function exportOrderExcel(row: WorkRow) {
+export async function exportOrderExcel(
+  row: WorkRow,
+  settings: TemplateSettingsType
+) {
   // ① テンプレ読み込み
   const res = await fetch('/011_発注書_タテ型_空欄版.xlsx')
   const arrayBuffer = await res.arrayBuffer()
@@ -21,15 +25,24 @@ export async function exportOrderExcel(row: WorkRow) {
   horizontal: 'left',
   }
 
+  //テンプレート設定
+  sheet.getCell("A1").value = settings.title
+  sheet.getCell("F5").value = settings.companyName
+  sheet.getCell("F6").value = settings.postCode
+  ? `〒${settings.postCode}`
+  : ''
+  sheet.getCell("F7").value = settings.address
+  sheet.getCell("F8").value = settings.building
+  sheet.getCell("F9").value = settings.tel
+  ? `TEL：${settings.tel}`
+  : ''
+  sheet.getCell("F10").value = settings.inchage
+  ? `担当：${settings.inchage}`
+  : ''
+
+
   // ② 基本情報
-  setCell('A2', row.顧客名)
-  const dateCell = sheet.getCell('G3')
-  dateCell.value = new Date(row.日付)
-  dateCell.numFmt = 'yyyy/mm/dd'
-  dateCell.alignment = {
-  ...dateCell.alignment,
-  horizontal: 'left',
-  }
+  setCell('A2', row.顧客名 ? `${row.顧客名}　御中` : "")
   setCell('G2', row.No)
 
   setCell('B6', row.案件名)
@@ -49,11 +62,31 @@ export async function exportOrderExcel(row: WorkRow) {
   setCell('A35', row.支払い)
   setCell('A38', row.その他)
 
+  // 日付
+  const dateCell = sheet.getCell('G3')
+
+  if (row.日付) {
+    const rawDate = String(row.日付)
+
+    if (rawDate.length === 8) {
+      const year = Number(rawDate.slice(0, 4))
+      const month = Number(rawDate.slice(4, 6)) - 1
+      const day = Number(rawDate.slice(6, 8))
+
+      dateCell.value = new Date(Date.UTC(year, month, day))
+      dateCell.numFmt = 'yyyy/mm/dd'
+    }
+  }
+
+  dateCell.alignment = {
+    horizontal: 'left',
+  }
+
   // ③ 計算
   const items = [
     {
       quantity: row.数量,
-      unitPrice: row.金額,
+      unitPrice: row.単価,
     },
   ]
 
@@ -61,7 +94,7 @@ export async function exportOrderExcel(row: WorkRow) {
 
   // ④ 数値
   setCell('D15', row.数量)
-  setCell('F15', row.金額)
+  setCell('F15', row.単価)
   setCell('G15', lineTotals[0])
 
   setCell('G22', subtotal)

@@ -2,6 +2,7 @@ import { PDFDocument, type PDFPage, } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import type { WorkRow } from '../types/workRow'
 import { calcOrder } from './calcOrder'
+import type { TemplateSettingsType } from "../types/template"
 
 /* =========================
    座標ガイド（開発用）
@@ -17,7 +18,7 @@ import { calcOrder } from './calcOrder'
 
 
 /* =========================
-   日本語安全 drawText
+   日本語安全 drawText(デフォルトテキスト)
 ========================= */
 function drawTextJP( 
   page: PDFPage, 
@@ -35,9 +36,20 @@ function drawTextJP(
 /* =========================
    日付
 ========================= */
-function formatDate(dateInput: string | Date | undefined | null) {
+function formatDate(dateInput: string | number | Date | undefined | null) {
   if (!dateInput) return ''
 
+  // ① YYYYMMDD形式（例: 20260209）の場合
+  const raw = String(dateInput)
+
+  if (/^\d{8}$/.test(raw)) {
+    const yyyy = raw.slice(0, 4)
+    const mm = raw.slice(4, 6)
+    const dd = raw.slice(6, 8)
+    return `${yyyy}/${mm}/${dd}`
+  }
+
+  // ② 通常のDate or 文字列の場合
   const date = new Date(dateInput)
 
   const yyyy = date.getFullYear()
@@ -47,8 +59,9 @@ function formatDate(dateInput: string | Date | undefined | null) {
   return `${yyyy}/${mm}/${dd}`
 }
 
+
 /* =========================
-   右揃え
+   右揃え(数値用)
 ========================= */
 function drawRightAlignedTextJP(
   page: any,
@@ -68,11 +81,41 @@ function drawRightAlignedTextJP(
   })
 }
 
+/* =========================
+   字間付き描画関数(タイトル用)
+========================= */
+function drawSpacedTextJP(
+  page: PDFPage,
+  text: string,
+  centerX: number,
+  y: number,
+  size: number,
+  font: any,
+  letterSpacing: number
+) {
+  let totalWidth = 0
+
+  for (const char of text) {
+    totalWidth += font.widthOfTextAtSize(char, size) + letterSpacing
+  }
+
+  totalWidth -= letterSpacing
+
+  let x = centerX - totalWidth / 2
+
+  for (const char of text) {
+    page.drawText(char, { x, y, size, font })
+    x += font.widthOfTextAtSize(char, size) + letterSpacing
+  }
+}
+
 
 /* =========================
    PDF出力本体
 ========================= */
-export async function exportOrderPdf(row: WorkRow) {
+export async function exportOrderPdf(
+  row: WorkRow,
+  settings: TemplateSettingsType) {
   try {
     console.log('PDF出力 row:', row)
 
@@ -97,11 +140,19 @@ export async function exportOrderPdf(row: WorkRow) {
     // ★ 座標確認したいときだけON
     // drawGuide(page)
 
+    /* ---------- テンプレート設定 ---------- */
+    drawSpacedTextJP(page, settings.title, 291, 763, 16, japaneseFont, 17)
+    drawTextJP(page, settings.companyName, 380, 680, 11, japaneseFont)
+    drawTextJP(page, settings.postCode, 390, 662, 11, japaneseFont)
+    drawTextJP(page, settings.address, 380, 643, 11, japaneseFont)
+    drawTextJP(page, settings.building, 380, 625, 11, japaneseFont)
+    drawTextJP(page, settings.tel, 410, 608, 11, japaneseFont)
+    drawTextJP(page, settings.inchage, 411, 589, 11, japaneseFont)
     /* ---------- 計算 ---------- */
     const items = [
       {
         quantity: row.数量 ?? 0,
-        unitPrice: row.金額 ?? 0,
+        unitPrice: row.単価 ?? 0,
       },
     ]
 
@@ -110,7 +161,7 @@ export async function exportOrderPdf(row: WorkRow) {
     /* ---------- PDF項目定義 ---------- */
     const pdfFields = [
       // 基本情報
-      { value: row.顧客名, x: 40, y: 730, size: 16 },
+      { value: row.顧客名 ? `${row.顧客名}　御中` : "", x: 40, y: 730, size: 16 },
       { value: formatDate(row.日付), x: 452, y: 716, size: 10 },
       { value: row.No, x: 452, y: 734, size: 10 },
 
@@ -154,7 +205,7 @@ export async function exportOrderPdf(row: WorkRow) {
 
     /* ---------- 明細 ---------- */
     drawTextJP(page, row.数量, 308, 498, 10, japaneseFont)
-    drawTextJP(page, row.金額, 400, 498, 10, japaneseFont)
+    drawTextJP(page, row.単価, 400, 498, 10, japaneseFont)
 
     if (lineTotals[0] != null) {
       drawRightAlignedTextJP( 
