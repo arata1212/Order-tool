@@ -4,11 +4,11 @@
 
 /* ライトモード（デフォルト） */
 :root {
-  --bg-color: #f8fafc;
+  --bg-color: #ffffffb0;
   --text-color: #111827;
 
-  --card-bg: #ffffff;
-  --border-color: #e5e7eb;
+  --card-bg: #c2c2c285;
+  --border-color: #4262a1;
 
   --excel-color: #059669;
   --pdf-color: #dc2626;

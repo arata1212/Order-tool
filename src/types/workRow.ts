@@ -19,16 +19,18 @@ export type WorkRow = {
   その他?: string
 
   //追加
+  請求先名: string
+  請求日: string
   支払日: string
   納期: string
   振込先: string
-  価格: string
-  基準時間: string
-  実働時間: string
-  超過時間: string
-  控除時間: string
-  諸経費: string
-  立替金: string
+  価格: number
+  基準時間: number
+  実働時間: number
+  超過時間: number
+  控除時間: number
+  諸経費: number
+  立替金: number
   特記事項: string
 
 }

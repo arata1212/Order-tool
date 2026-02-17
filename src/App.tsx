@@ -5,6 +5,8 @@ import { exportOrderExcel } from './utils/exportOrderExcel'
 import { exportOrderPdf } from './utils/exportOrderPdf'
 import { exportOrderConfirmationExcel } from './utils/exportOrderConfirmationExcel'
 import { exportOrderConfirmationPdf } from './utils/exportOrderConfirmationPdf'
+import { exportInvoiceExcel } from './utils/exportInvoiceExcel'
+import { exportInvoicePdf } from './utils/exportInvoicePdf'
 import Section from './layout/Section'
 import OutputCard from './layout/OutputCard'
 import { styles } from './styles/appStyles'
@@ -14,10 +16,10 @@ import { useTemplateSettings } from './hooks/useTemplateSettings'
 
 function App() {
   const [rows, setRows] = useState<WorkRow[]>([])
-  const [invoiceRows, setInvoiceRows] = useState<WorkRow[]>([])
+  // const [invoiceRows, setInvoiceRows] = useState<WorkRow[]>([])
 
   const [selectedName, setSelectedName] = useState('')
-  const [selectedInvoiceName, setSelectedInvoiceName] = useState('')
+  // const [selectedInvoiceName, setSelectedInvoiceName] = useState('')
 
   const { settings, setSettings } = useTemplateSettings()
 
@@ -35,9 +37,9 @@ function App() {
     console.log('選択された行', selectedRow)
   }
 
-  const invoiceNames = Array.from(
-    new Set(invoiceRows.map(row => row.要員名))
-  )
+  // const invoiceNames = Array.from(
+  //   new Set(invoiceRows.map(row => row.要員名))
+  // )
 
   // const selectedInvoiceRow = invoiceRows.find(
   //   row => row.要員名 === selectedInvoiceName
@@ -52,14 +54,14 @@ function App() {
 
     <div style={styles.container}>
 
-      <Section title="STEP 1｜注文書用 稼働表アップロード">
+      <Section title="STEP 1｜稼働表アップロード">
         <ExcelUploader onLoad={setRows} />
         <p>読み込み件数：{rows.length}</p>
       </Section>
 
-      <Section title="STEP 1｜請求書用 稼働表アップロード">
+      {/* <Section title="STEP 1｜請求書用 稼働表アップロード">
         <ExcelUploader onLoad={setInvoiceRows} />
-      </Section>
+      </Section> */}
 
       {rows.length > 0 && (
         <Section title="STEP 2｜要員選択">
@@ -76,7 +78,7 @@ function App() {
             ))}
           </select>
 
-          <select
+          {/* <select
             value={selectedInvoiceName}
             onChange={(e) => setSelectedInvoiceName(e.target.value)}
           >
@@ -84,7 +86,7 @@ function App() {
             {invoiceNames.map(name => (
               <option key={name} value={name}>{name}</option>
             ))}
-          </select>
+          </select> */}
 
 
         </Section>
@@ -119,16 +121,16 @@ function App() {
                 }
               />
 
-              {/* <OutputCard
+              <OutputCard
                 title="請求書"
                 icon="🧾"
                 onExcel={() =>
-                  selectedInvoiceRow && exportInvoiceExcel(selectedInvoiceRow, settings)
+                  exportInvoiceExcel(selectedRow, settings)
                 }
                 onPdf={() =>
-                  selectedInvoiceRow && exportInvoicePdf(selectedInvoiceRow, settings)
+                  exportInvoicePdf(selectedRow, settings)
                 }
-              /> */}
+              />
 
             </div>
 
