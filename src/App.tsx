@@ -39,9 +39,9 @@ function App() {
     new Set(invoiceRows.map(row => row.要員名))
   )
 
-  const selectedInvoiceRow = invoiceRows.find(
-    row => row.要員名 === selectedInvoiceName
-  )
+  // const selectedInvoiceRow = invoiceRows.find(
+  //   row => row.要員名 === selectedInvoiceName
+  // )
 
   
   return (

@@ -25,4 +25,10 @@ export const styles = {
     gridTemplateColumns: '1fr 1fr',
     gap: 20,
   },
+  card: {
+    background: 'var(--card-bg)',
+    borderRadius: 12,
+    padding: 16,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+  },
 }
