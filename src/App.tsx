@@ -114,10 +114,10 @@ function App() {
                 title="注文請書"
                 icon="📑"
                 onExcel={() =>
-                  exportOrderConfirmationExcel(selectedRow)
+                  exportOrderConfirmationExcel(selectedRow, settings)
                 }
                 onPdf={() =>
-                  exportOrderConfirmationPdf(selectedRow)
+                  exportOrderConfirmationPdf(selectedRow, settings)
                 }
               />
 

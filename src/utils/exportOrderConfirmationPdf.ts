@@ -2,6 +2,7 @@ import { PDFDocument, type PDFPage, } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import type { WorkRow } from '../types/workRow'
 import { calcOrder } from './calcOrder'
+import type { TemplateSettingsType } from '../types/template'
 
 /* =========================
    座標ガイド（開発用）
@@ -80,11 +81,40 @@ function drawRightAlignedTextJP(
   })
 }
 
+/* =========================
+   字間付き描画関数(タイトル用)
+========================= */
+function drawSpacedTextJP(
+  page: PDFPage,
+  text: string,
+  centerX: number,
+  y: number,
+  size: number,
+  font: any,
+  letterSpacing: number
+) {
+  let totalWidth = 0
+
+  for (const char of text) {
+    totalWidth += font.widthOfTextAtSize(char, size) + letterSpacing
+  }
+
+  totalWidth -= letterSpacing
+
+  let x = centerX - totalWidth / 2
+
+  for (const char of text) {
+    page.drawText(char, { x, y, size, font })
+    x += font.widthOfTextAtSize(char, size) + letterSpacing
+  }
+}
 
 /* =========================
    PDF出力本体
 ========================= */
-export async function exportOrderConfirmationPdf(row: WorkRow) {
+export async function exportOrderConfirmationPdf(
+  row: WorkRow,
+  settings: TemplateSettingsType) {
   try {
     console.log('PDF出力 row:', row)
 
@@ -109,7 +139,8 @@ export async function exportOrderConfirmationPdf(row: WorkRow) {
     // ★ 座標確認したいときだけON
     // drawGuide(page)
 
-    
+    /* ---------- テンプレート設定 ---------- */
+    drawSpacedTextJP(page, settings.title, 291, 763, 16, japaneseFont, 17)
     /* ---------- 計算 ---------- */
     const items = [
       {

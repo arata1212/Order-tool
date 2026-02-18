@@ -1,8 +1,12 @@
 import ExcelJS from 'exceljs'
 import type { WorkRow } from '../types/workRow'
 import { calcOrder } from './calcOrder'
+import type { TemplateSettingsType } from '../types/template'
 
-export async function exportOrderConfirmationExcel(row: WorkRow) {
+export async function exportOrderConfirmationExcel(
+  row: WorkRow,
+  settings: TemplateSettingsType
+) {
   // ① テンプレ読み込み
   const res = await fetch('/【アレンジ版】発注請書_タテ型_空欄版.xlsx')
   const arrayBuffer = await res.arrayBuffer()
@@ -20,6 +24,9 @@ export async function exportOrderConfirmationExcel(row: WorkRow) {
   sheet.getCell('B31').alignment = {
   horizontal: 'left',
   }
+
+  //テンプレート設定
+  sheet.getCell("A1").value = settings.title
 
   // ② 基本情報
   setCell('F6', row.顧客名)
