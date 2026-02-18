@@ -8,14 +8,14 @@ import { calcInvoice } from './calcInvoice'
 /* =========================
    座標ガイド（開発用）
 ========================= */
-function drawGuide(page: PDFPage) {
-  for (let x = 0; x <= 600; x += 50) {
-    page.drawText(String(x), { x, y: 5, size: 6 })
-  }
-  for (let y = 0; y <= 850; y += 50) {
-    page.drawText(String(y), { x: 5, y, size: 6 })
-  }
-}
+// function drawGuide(page: PDFPage) {
+//   for (let x = 0; x <= 600; x += 50) {
+//     page.drawText(String(x), { x, y: 5, size: 6 })
+//   }
+//   for (let y = 0; y <= 850; y += 50) {
+//     page.drawText(String(y), { x: 5, y, size: 6 })
+//   }
+// }
 
 
 /* =========================
@@ -139,7 +139,7 @@ export async function exportInvoicePdf(
     const page = pdfDoc.getPages()[0]
 
     // ★ 座標確認したいときだけON
-    drawGuide(page)
+    // drawGuide(page)
 
     /* =========================
    英数字用フォント
