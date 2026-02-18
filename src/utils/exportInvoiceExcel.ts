@@ -51,8 +51,8 @@ export async function exportInvoiceExcel(
   setCell('C12', row.振込先)
 
   setCell('B18', row.要員名)
-  // setCell('D18', row.単価)
-  // setCell('E18', row.数量)
+  setCell('D18', row.単価)
+  setCell('E18', String(row.数量))
   // setCell('F18', row.価格)
   setCell('G18', row.基準時間)
   setCell('H18', row.実働時間)
