@@ -1,8 +1,9 @@
 import { PDFDocument, type PDFPage, } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
 import type { WorkRow } from '../types/workRow'
-// import { calcOrder } from './calcOrder'
 import type { TemplateSettingsType } from "../types/template"
+import { calcInvoice } from './calcInvoice'
+
 
 /* =========================
    座標ガイド（開発用）
@@ -63,23 +64,23 @@ function formatDate(dateInput: string | number | Date | undefined | null) {
 /* =========================
    右揃え(数値用)
 ========================= */
-// function drawRightAlignedTextJP(
-//   page: any,
-//   text: string,
-//   rightX: number,
-//   y: number,
-//   size: number,
-//   font: any
-// ) {
-//   const textWidth = font.widthOfTextAtSize(text, size)
+function drawRightAlignedTextJP(
+  page: any,
+  text: string,
+  rightX: number,
+  y: number,
+  size: number,
+  font: any
+) {
+  const textWidth = font.widthOfTextAtSize(text, size)
 
-//   page.drawText(text, {
-//     x: rightX - textWidth,
-//     y,
-//     size,
-//     font,
-//   })
-// }
+  page.drawText(text, {
+    x: rightX - textWidth,
+    y,
+    size,
+    font,
+  })
+}
 
 /* =========================
    字間付き描画関数(タイトル用)
@@ -126,20 +127,46 @@ export async function exportInvoicePdf(
 
     const pdfDoc = await PDFDocument.load(await res.arrayBuffer())
 
-    /* ---------- 日本語フォント ---------- */
+    /* ---------- 日本語フォントand英数字フォント ---------- */
     pdfDoc.registerFontkit(fontkit)
 
     const fontRes = await fetch('/NotoSansJP-Regular.ttf')
-    if (!fontRes.ok) throw new Error('フォント取得失敗')
+    const japaneseFont = await pdfDoc.embedFont(await fontRes.arrayBuffer())
 
-    const japaneseFont = await pdfDoc.embedFont(
-      await fontRes.arrayBuffer()
-    )
+    const monoFontRes = await fetch('/RobotoMono-Regular.ttf')
+    const monoFont = await pdfDoc.embedFont(await monoFontRes.arrayBuffer())
 
     const page = pdfDoc.getPages()[0]
 
     // ★ 座標確認したいときだけON
     drawGuide(page)
+
+    /* =========================
+   英数字用フォント
+========================= */
+
+function drawMixedTextJP(
+  page: PDFPage,
+  text: string | number | null | undefined,
+  x: number,
+  y: number,
+  size: number,
+  jpFont: any,
+  monoFont: any
+) {
+  if (!text) return
+
+  let cursorX = x
+
+  for (const char of String(text)) {
+    const font = /[0-9h\-]/.test(char) ? monoFont : jpFont
+    const w = font.widthOfTextAtSize(char, size)
+
+    page.drawText(char, { x: cursorX, y, size, font })
+    cursorX += w
+  }
+}
+
 
     /* ---------- テンプレート設定 ---------- */
     drawSpacedTextJP(page, settings.title, 291, 763, 16, japaneseFont, 17)
@@ -150,15 +177,17 @@ export async function exportInvoicePdf(
     drawTextJP(page, settings.tel, 429, 661.5, 8, japaneseFont)
     drawTextJP(page, settings.inchage, 432, 650.5, 8, japaneseFont)
     /* ---------- 計算 ---------- */
-    // const items = [
-    //   {
-    //     quantity: row.数量 ?? 0,
-    //     unitPrice: row.単価 ?? 0,
-    //   },
-    // ]
-
-    // const { lineTotals, subtotal, tax, total } = calcOrder(items)
-
+    const {
+      lineTotal,
+      subtotalPrice,
+      subtotalExpense,
+      tax,
+      total,
+    } = calcInvoice(
+      row.数量,
+      row.単価,
+      row.諸経費
+    )
     /* ---------- PDF項目定義 ---------- */
     const pdfFields = [
       // 基本情報
@@ -175,17 +204,29 @@ export async function exportInvoicePdf(
       { value: row.要員名, x: 82, y: 571, size: 9 },
       { value: row.単価, x: 175, y: 571, size: 9 },
       { value: row.数量, x: 228, y: 571, size: 9 },
-      { value: row.価格, x: 250, y: 571, size: 9 },
-      { value: row.基準時間, x: 300, y: 571, size: 9 },
-      { value: row.実働時間, x: 125, y: 245, size: 9 },
-      { value: row.超過時間, x: 125, y: 245, size: 9 },
-      { value: row.控除時間, x: 125, y: 245, size: 9 },
-      { value: row.諸経費, x: 125, y: 245, size: 9 },
-      { value: row.立替金, x: 125, y: 226, size: 9 },
+      // { value: row.価格, x: 250, y: 571, size: 9 },
+      // { value: row.基準時間, x: 300, y: 571, size: 9 },
+      { value: row.実働時間, x: 370, y: 571, size: 9 },
+      { value: row.超過時間, x: 424, y: 571, size: 9 },
+      { value: row.控除時間, x: 465, y: 571, size: 9 },
+      // { value: row.諸経費, x: 520, y: 571, size: 9 },
+      // { value: row.立替金, x: 520, y: 383, size: 9 },
 
       // その他
-      { value: row.特記事項, x: 51, y: 87, size: 10 },
+      { value: row.特記事項, x: 45, y: 325, size: 9 },
     ]
+    drawRightAlignedTextJP(page, String(row.諸経費), 550, 571, 9, japaneseFont)
+    drawRightAlignedTextJP(page, String(row.立替金), 550, 383, 9, japaneseFont)
+
+    drawMixedTextJP(
+      page,
+      row.基準時間,
+      300,
+      571,
+      9,
+      japaneseFont,
+      monoFont
+    )
 
     /* ---------- 一括描画 ---------- */
     pdfFields.forEach((f) => {
@@ -204,33 +245,17 @@ export async function exportInvoicePdf(
   // }
 
     /* ---------- 明細 ---------- */
-    // drawTextJP(page, row.数量, 308, 498, 10, japaneseFont)
-    // drawTextJP(page, row.単価, 400, 498, 10, japaneseFont)
+    if (lineTotal !== null) {
+      drawRightAlignedTextJP(page, lineTotal.toLocaleString(), 290, 571, 9, japaneseFont)
+    }
 
-    // if (lineTotals[0] != null) {
-    //   drawRightAlignedTextJP( 
-    //     page, 
-    //     lineTotals[0].toLocaleString(), 
-    //     540, 
-    //     498, 
-    //     10, 
-    //     japaneseFont 
-    //   )
-    // }
+    /* ---------- 小計 ---------- */
+    drawRightAlignedTextJP(page, subtotalPrice.toLocaleString(), 290, 370, 9, japaneseFont)
+    drawRightAlignedTextJP(page, subtotalExpense.toLocaleString(), 550, 369, 9, japaneseFont)
 
-    /* ---------- 合計 ---------- */
-    // drawRightAlignedTextJP(page, subtotal.toLocaleString(), 540, 372, 10, japaneseFont)
-    // drawRightAlignedTextJP(page, tax.toLocaleString(), 540, 353, 10, japaneseFont)
-    // drawRightAlignedTextJP(page, total.toLocaleString(), 540, 335, 10, japaneseFont)
-
-    // drawRightAlignedTextJP(
-    //   page,
-    //   `${total.toLocaleString()}円(税込)`,
-    //   330,
-    //   559,
-    //   18,
-    //   japaneseFont
-    // )
+    /* ---------- 税・合計 ---------- */
+    drawRightAlignedTextJP(page, tax.toLocaleString(), 550, 356, 9, japaneseFont)
+    drawRightAlignedTextJP(page, total.toLocaleString(), 550, 342, 10, japaneseFont)
 
 
     /* ---------- 出力 ---------- */

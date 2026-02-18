@@ -3,7 +3,7 @@ export type WorkRow = {
   案件名: string
   顧客名: string
   作業期間: string
-  数量: number
+  数量?: number
   単位: string
   単価: number
   清算幅?: string

@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs'
 import type { WorkRow } from '../types/workRow'
-// import { calcOrder } from './calcOrder'
+import { calcInvoice } from './calcInvoice'
 import type { TemplateSettingsType } from '../types/template'
 
 export async function exportInvoiceExcel(
@@ -51,9 +51,9 @@ export async function exportInvoiceExcel(
   setCell('C12', row.振込先)
 
   setCell('B18', row.要員名)
-  setCell('D18', row.単価)
-  setCell('E18', row.数量)
-  setCell('F18', row.価格)
+  // setCell('D18', row.単価)
+  // setCell('E18', row.数量)
+  // setCell('F18', row.価格)
   setCell('G18', row.基準時間)
   setCell('H18', row.実働時間)
   setCell('I18', row.超過時間)
@@ -85,24 +85,29 @@ export async function exportInvoiceExcel(
   }
 
   // ③ 計算
-//   const items = [
-//     {
-//       quantity: row.数量,
-//       unitPrice: row.単価,
-//     },
-//   ]
+  const {
+  lineTotal,
+  subtotalPrice,
+  subtotalExpense,
+  tax,
+  total
+} = calcInvoice(
+  row.数量,
+  row.単価,      // 単価
+  row.諸経費     // ← WorkRowにあるなら
+)
 
-//   const { lineTotals, subtotal, tax, total } = calcOrder(items)
+// 明細
+setCell('F18', lineTotal)
 
-  // ④ 数値
-  setCell('E18', row.数量)
-  setCell('D18', row.単価)
-//   setCell('G15', lineTotals[0])
+// 小計
+setCell('F28', subtotalPrice)
+setCell('K28', subtotalExpense)
 
-//   setCell('G22', subtotal)
-//   setCell('G23', tax)
-//   setCell('G24', total)
-//   setCell('B11', total)
+// 税・合計
+setCell('K29', tax)
+setCell('K30', total)
+
 
   // ⑤ 出力
   const buffer = await workbook.xlsx.writeBuffer()
