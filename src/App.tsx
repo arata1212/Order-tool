@@ -16,10 +16,7 @@ import { useTemplateSettings } from './hooks/useTemplateSettings'
 
 function App() {
   const [rows, setRows] = useState<WorkRow[]>([])
-  // const [invoiceRows, setInvoiceRows] = useState<WorkRow[]>([])
-
   const [selectedName, setSelectedName] = useState('')
-  // const [selectedInvoiceName, setSelectedInvoiceName] = useState('')
 
   const { settings, setSettings } = useTemplateSettings()
 
@@ -37,14 +34,6 @@ function App() {
     console.log('選択された行', selectedRow)
   }
 
-  // const invoiceNames = Array.from(
-  //   new Set(invoiceRows.map(row => row.要員名))
-  // )
-
-  // const selectedInvoiceRow = invoiceRows.find(
-  //   row => row.要員名 === selectedInvoiceName
-  // )
-
   
   return (
   <div style={styles.page}>
@@ -58,10 +47,6 @@ function App() {
         <ExcelUploader onLoad={setRows} />
         <p>読み込み件数：{rows.length}</p>
       </Section>
-
-      {/* <Section title="STEP 1｜請求書用 稼働表アップロード">
-        <ExcelUploader onLoad={setInvoiceRows} />
-      </Section> */}
 
       {rows.length > 0 && (
         <Section title="STEP 2｜要員選択">
@@ -77,16 +62,6 @@ function App() {
               </option>
             ))}
           </select>
-
-          {/* <select
-            value={selectedInvoiceName}
-            onChange={(e) => setSelectedInvoiceName(e.target.value)}
-          >
-            <option value="">請求書用 要員を選択</option>
-            {invoiceNames.map(name => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select> */}
 
 
         </Section>

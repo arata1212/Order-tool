@@ -37,7 +37,7 @@ export async function exportOrderConfirmationExcel(
   setCell('B7', row.作業期間)
   setCell('A15', row.要員名)
 
-  setCell('E15', row.単価)
+  setCell('E15', row.単位)
 
   setCell('B28', row.勤務条件)
   setCell('B29', row.勤務時間)
