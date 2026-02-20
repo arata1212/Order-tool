@@ -1,13 +1,19 @@
 import ExcelJS from 'exceljs'
 import type { WorkRow } from '../types/workRow'
-import { calcInvoice } from './calcInvoice'
 import type { TemplateSettingsType } from '../types/template'
+import { calcInvoiceMulti } from './calcInvoiceMulti'
 
 export async function exportInvoiceExcel(
-  row: WorkRow,
+  rows: WorkRow[],
   settings: TemplateSettingsType
 ) {
-  // ① テンプレ読み込み
+  if (rows.length === 0) {
+    alert('請求対象の要員がありません')
+    return
+  }
+
+  const firstRow = rows[0]  // ← 共通項目はここから取る
+
   const res = await fetch('/請求書テンプレ 1.xlsx')
   const arrayBuffer = await res.arrayBuffer()
 
@@ -25,50 +31,11 @@ export async function exportInvoiceExcel(
   horizontal: 'left',
   }
 
-  //テンプレート設定
-  sheet.getCell("B2").value = settings.title
-  sheet.getCell("I7").value = settings.companyName
-  sheet.getCell("I8").value = settings.postCode
-  ? `〒${settings.postCode}`
-  : ''
-  sheet.getCell("I9").value = settings.address
-  sheet.getCell("I10").value = settings.building
-  sheet.getCell("I11").value = settings.tel
-  ? `TEL：${settings.tel}`
-  : ''
-  sheet.getCell("I12").value = settings.inchage
-  ? `担当：${settings.inchage}`
-  : ''
-
-
-  // ② 基本情報
-  setCell('B4', row.請求先名 ? `${row.請求先名}　御中` : "")
-  setCell('J4', row.No)
-
-  setCell('C9', row.作業期間)
-  setCell('C10', row.支払日)
-  setCell('C11', row.納期)
-  setCell('C12', row.振込先)
-
-  setCell('B18', row.要員名)
-  setCell('D18', row.単価)
-  setCell('E18', String(row.数量))
-  // setCell('F18', row.価格)
-  setCell('G18', row.基準時間)
-  setCell('H18', row.実働時間)
-  setCell('I18', row.超過時間)
-  setCell('J18', row.控除時間)
-  setCell('K18', row.諸経費)
-
-  setCell('K27', row.立替金)
-
-  setCell('B31', row.特記事項)
-
   // 日付
   const dateCell = sheet.getCell('J5')
 
-  if (row.請求日) {
-    const rawDate = String(row.請求日)
+  if (firstRow.請求日) {
+    const rawDate = String(firstRow.請求日)
 
     if (rawDate.length === 8) {
       const year = Number(rawDate.slice(0, 4))
@@ -84,34 +51,67 @@ export async function exportInvoiceExcel(
     horizontal: 'left',
   }
 
-  // ③ 計算
-  const {
-  lineTotal,
-  subtotalPrice,
-  subtotalExpense,
-  tax,
-  total
-} = calcInvoice(
-    row.数量 ?? 0,
-    row.単価 ?? 0,
-    row.諸経費 ?? 0,
-)
+  //テンプレート設定
+  setCell('B2', settings.title)
+  setCell('I7', settings.companyName)
+  setCell('I8', settings.postCode ? `〒${settings.postCode}` : '')
+  setCell('I9', settings.address)
+  setCell('I10', settings.building)
+  setCell('I11', settings.tel ? `TEL：${settings.tel}` : '')
+  setCell('I12', settings.inchage ? `担当：${settings.inchage}` : '')
+  
+  // ② 基本情報
+  setCell('B4', firstRow.請求先名 ? `${firstRow.請求先名}　御中` : "")
+  setCell('J4', firstRow.No)
 
-// 立替金は別で足す（非課税）
-const advance = row.立替金 ?? 0
-const grandTotal = total + advance
+  setCell('C9', firstRow.作業期間)
+  setCell('C10', firstRow.支払日)
+  setCell('C11', firstRow.納期)
+  setCell('C12', firstRow.振込先)
+  
+  setCell('G18', firstRow.基準時間)
+  setCell('H18', firstRow.実働時間)
+  setCell('I18', firstRow.超過時間)
+  setCell('J18', firstRow.控除時間)
+  setCell('K18', firstRow.諸経費)
+
+  setCell('B31', firstRow.特記事項)
+
+  
+
+  // ③ 計算
+  const startRow = 18
+
+  const {
+    details,
+    subtotalPrice,
+    subtotalExpense,
+    advance,
+    tax,
+    total
+  } = calcInvoiceMulti(rows)
+
+  details.forEach((d, i) => {
+    const r = startRow + i
+
+    setCell(`B${r}`, d.row.要員名)
+    setCell(`D${r}`, d.row.単価)
+    setCell(`E${r}`, d.row.数量)
+    setCell(`F${r}`, d.lineTotal)// 単価×数量
+    setCell(`K${r}`, d.row.諸経費)
+  })
+
+
 /* ---------- 計算結果反映 ---------- */
-  setCell('F18', lineTotal)          // 単価×数量
   setCell('F28', subtotalPrice)     // 価格小計
   setCell('K28', subtotalExpense)   // 諸経費小計
   setCell('K29', tax)               // 消費税
-  setCell('K27', row.立替金)   // 立替金
-  setCell('K30', grandTotal)             // 合計（税込）
+  setCell('K27', advance)   // 立替金
+  setCell('K30', total)             // 合計（税込）
 
   // ⑤ 出力
   const buffer = await workbook.xlsx.writeBuffer()
-
-  const blob = new Blob([buffer], {
+    const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   })
 
@@ -119,8 +119,12 @@ const grandTotal = total + advance
 
   const a = document.createElement('a')
   a.href = url
-  a.download = `請求書_${row.No}.xlsx`
+  a.download = `請求書_${firstRow.No ?? ''}.xlsx`
   a.click()
+
+  if (rows.slice(1).some(r => r.立替金)) {
+  console.warn('立替金は1行目のみ有効です')
+  }
 
   URL.revokeObjectURL(url)
 }

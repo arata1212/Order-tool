@@ -214,12 +214,10 @@ const selectedInvoiceRows = rows.filter(row =>
                     title="請求書"
                     icon="🧾"
                     onExcel={async () => {
-                      for (const row of selectedInvoiceRows) {
-                        await exportInvoiceExcel(row, settings)
-                      }
+                      await exportInvoiceExcel(selectedInvoiceRows, settings)
                     }}
                     onPdf={() =>
-                      selectedInvoiceRows.forEach(row => exportInvoicePdf(row, settings))
+                      exportInvoicePdf(selectedInvoiceRows, settings)
                     }
                   />
                 </Section>
