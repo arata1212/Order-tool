@@ -92,22 +92,21 @@ export async function exportInvoiceExcel(
   tax,
   total
 } = calcInvoice(
-  row.数量,
-  row.単価,      // 単価
-  row.諸経費     // ← WorkRowにあるなら
+    row.数量 ?? 0,
+    row.単価 ?? 0,
+    row.諸経費 ?? 0,
 )
 
-// 明細
-setCell('F18', lineTotal)
-
-// 小計
-setCell('F28', subtotalPrice)
-setCell('K28', subtotalExpense)
-
-// 税・合計
-setCell('K29', tax)
-setCell('K30', total)
-
+// 立替金は別で足す（非課税）
+const advance = row.立替金 ?? 0
+const grandTotal = total + advance
+/* ---------- 計算結果反映 ---------- */
+  setCell('F18', lineTotal)          // 単価×数量
+  setCell('F28', subtotalPrice)     // 価格小計
+  setCell('K28', subtotalExpense)   // 諸経費小計
+  setCell('K29', tax)               // 消費税
+  setCell('K27', row.立替金)   // 立替金
+  setCell('K30', grandTotal)             // 合計（税込）
 
   // ⑤ 出力
   const buffer = await workbook.xlsx.writeBuffer()

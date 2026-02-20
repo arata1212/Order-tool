@@ -252,10 +252,14 @@ function drawMixedTextJP(
     /* ---------- 小計 ---------- */
     drawRightAlignedTextJP(page, subtotalPrice.toLocaleString(), 290, 370, 9, japaneseFont)
     drawRightAlignedTextJP(page, subtotalExpense.toLocaleString(), 550, 369, 9, japaneseFont)
+    
 
     /* ---------- 税・合計 ---------- */
     drawRightAlignedTextJP(page, tax.toLocaleString(), 550, 356, 9, japaneseFont)
-    drawRightAlignedTextJP(page, total.toLocaleString(), 550, 342, 10, japaneseFont)
+
+    const advance = row.立替金 ?? 0
+    const grandTotal = total + advance
+    drawRightAlignedTextJP(page, grandTotal.toLocaleString(), 550, 342, 10, japaneseFont)
 
 
     /* ---------- 出力 ---------- */
@@ -274,5 +278,3 @@ function drawMixedTextJP(
     alert('PDF出力に失敗しました（consoleを確認してください）')
   }
 }
-
-
