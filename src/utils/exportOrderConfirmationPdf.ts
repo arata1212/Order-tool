@@ -164,7 +164,7 @@ export async function exportOrderConfirmationPdf(
       { value: row.要員名, x: 140, y: 498, size: 12 },
 
       // 勤務条件系
-      { value: row.単位, x: 355, y: 498, size: 10 },
+      { value: row.単価, x: 355, y: 498, size: 10 },
       { value: row.勤務条件, x: 125, y: 262, size: 10 },
       { value: row.勤務時間, x: 125, y: 245, size: 10 },
 
