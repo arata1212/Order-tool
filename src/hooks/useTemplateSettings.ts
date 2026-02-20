@@ -1,3 +1,4 @@
+// src\hooks\useTemplateSettings.ts
 import { useState } from 'react'
 import type { TemplateSettingsType } from '../types/template'
 

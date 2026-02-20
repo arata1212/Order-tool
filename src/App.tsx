@@ -17,6 +17,9 @@ import { useTemplateSettings } from './hooks/useTemplateSettings'
 function App() {
   const [rows, setRows] = useState<WorkRow[]>([])
   const [selectedName, setSelectedName] = useState('')
+  // 請求書用
+  const [selectedClient, setSelectedClient] = useState('')
+  const [selectedInvoiceMembers, setSelectedInvoiceMembers] = useState<string[]>([])
 
   const { settings, setSettings } = useTemplateSettings()
 
@@ -26,15 +29,37 @@ function App() {
   )
 
   // 選択された要員の一行
-  const selectedRow = rows.find(
+  const selectedRowLog = rows.find(
     row => row.要員名 === selectedName
   )
 
-  if (selectedRow) {
-    console.log('選択された行', selectedRow)
+  if (selectedRowLog) {
+    console.log('選択された行', selectedRowLog)
   }
 
-  
+  const billingClients = Array.from(
+  new Set(rows.map(row => row.請求先名))
+)
+
+const invoiceMembers = rows.filter(
+  row => row.請求先名 === selectedClient
+)
+
+  type Mode = 'order' | 'invoice'
+
+const [mode, setMode] = useState<Mode>('order')
+
+
+
+//出力部分
+const selectedRow = rows.find(row => row.要員名 === selectedName)
+
+const selectedInvoiceRows = rows.filter(row =>
+  selectedInvoiceMembers.includes(row.要員名)
+)
+
+
+
   return (
   <div style={styles.page}>
     <header style={styles.header}>
@@ -48,8 +73,41 @@ function App() {
         <p>読み込み件数：{rows.length}</p>
       </Section>
 
-      {rows.length > 0 && (
-        <Section title="STEP 2｜要員選択">
+    <Section title="STEP 2｜用途選択">
+      <div style={{ display: 'flex', gap: 12 }}>
+        <button
+          onClick={() => setMode('order')}
+          style={{
+            padding: 8,
+            background: mode === 'order' ? '#333' : '#eee',
+            color: mode === 'order' ? '#fff' : '#000',
+          }}
+        >
+          注文書・注文請書
+        </button>
+
+        <button
+          onClick={() => {
+            setMode('invoice')
+            setSettings(prev => ({
+              ...prev,
+              documentType: 'invoice',
+              title: '請求書',
+          }))
+        }}
+          style={{
+            padding: 8,
+            background: mode === 'invoice' ? '#333' : '#eee',
+            color: mode === 'invoice' ? '#fff' : '#000',
+          }}
+        >
+          請求書
+        </button>
+      </div>
+    </Section>
+
+      {rows.length > 0 && mode === 'order' && (
+        <Section title="STEP 3｜要員選択（注文書・注文請書）">
           <select
             style={styles.select}
             value={selectedName}
@@ -62,19 +120,64 @@ function App() {
               </option>
             ))}
           </select>
-
-
         </Section>
-        
       )}
 
-      {selectedRow && (
-        <>
-          <Section title="STEP 3｜帳票出力">
+          {/* 請求先セレクト */}
+          
+  {rows.length > 0 && mode === 'invoice' && (
+    <Section title="STEP 3｜請求先・要員選択（請求書）">
+
+      <select
+        style={styles.select}
+        value={selectedClient}
+        onChange={(e) => {
+          setSelectedClient(e.target.value)
+          setSelectedInvoiceMembers([])
+        }}
+      >
+        <option value="">請求先を選択</option>
+        {billingClients.map(name => (
+          <option key={name} value={name}>
+            {name}
+          </option>
+        ))}
+      </select>
+
+    {selectedClient && (
+      <div style={{ marginTop: 12 }}>
+        {invoiceMembers.map(row => (
+          <label key={row.要員名} style={{ display: 'block' }}>
+            <input
+              type="checkbox"
+              checked={selectedInvoiceMembers.includes(row.要員名)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedInvoiceMembers(prev => [...prev, row.要員名])
+                } else {
+                  setSelectedInvoiceMembers(prev =>
+                    prev.filter(name => name !== row.要員名)
+                  )
+                }
+              }}
+            />
+            {row.要員名}
+          </label>
+        ))}
+      </div>
+    )}
+
+  </Section>
+)}
+          
+
+      {mode === 'order' && selectedRow && (
+        <Section title="STEP 4｜帳票出力（注文系）">
 
             <TemplateSettings
               settings={settings}
               setSettings={setSettings}
+              mode={mode}
             />
             
             <div className="output-grid">
@@ -95,26 +198,33 @@ function App() {
                   exportOrderConfirmationPdf(selectedRow, settings)
                 }
               />
-
-              <OutputCard
-                title="請求書"
-                icon="🧾"
-                onExcel={() =>
-                  exportInvoiceExcel(selectedRow, settings)
-                }
-                onPdf={() =>
-                  exportInvoicePdf(selectedRow, settings)
-                }
-              />
-
-            </div>
-
-          </Section>
-        </>
+              </div>
+        </Section>
       )}
-    </div>
-  </div>
-)
-}
 
+
+              {mode === 'invoice' && selectedInvoiceRows.length > 0 && (
+                <Section title="STEP 4｜帳票出力（請求書）">
+                  <TemplateSettings
+                    settings={settings}
+                    setSettings={setSettings}
+                    mode={mode}
+                  />
+                  <OutputCard
+                    title="請求書"
+                    icon="🧾"
+                    onExcel={async () => {
+                      for (const row of selectedInvoiceRows) {
+                        await exportInvoiceExcel(row, settings)
+                      }
+                    }}
+                    onPdf={() =>
+                      selectedInvoiceRows.forEach(row => exportInvoicePdf(row, settings))
+                    }
+                  />
+                </Section>
+              )}
+              </div>
+    </div>
+  )}
 export default App
