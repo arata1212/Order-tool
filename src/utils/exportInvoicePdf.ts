@@ -139,7 +139,46 @@ function drawMixedTextJP(
     cursorX += w
   }
 }
+/* =========================
+   折り返し対応関数(その他備考用)
+========================= */
+function drawWrappedTextJP(
+  page: PDFPage,
+  text: string | null | undefined,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  size: number,
+  font: any
+) {
+  if (!text) return
 
+  const lines = String(text).split(/\r?\n/)
+  let currentY = y
+
+  for (const line of lines) {
+    let buffer = ''
+
+    for (const char of line) {
+      const test = buffer + char
+      const w = font.widthOfTextAtSize(test, size)
+
+      if (w > maxWidth) {
+        page.drawText(buffer, { x, y: currentY, size, font })
+        currentY -= lineHeight
+        buffer = char
+      } else {
+        buffer = test
+      }
+    }
+
+    if (buffer) {
+      page.drawText(buffer, { x, y: currentY, size, font })
+      currentY -= lineHeight
+    }
+  }
+}
 /* =========================
    社印描画用
 ========================= */
@@ -260,7 +299,7 @@ export async function exportInvoicePdf(
     drawRightAlignedTextJP(page, tax.toLocaleString(), 550, 356, 9, japaneseFont)
     drawRightAlignedTextJP(page, total.toLocaleString(), 550, 342, 10, japaneseFont)
 
-    drawTextJP(page, header.特記事項, 45, 325, 9, japaneseFont)
+    drawWrappedTextJP(page, header.特記事項, 45, 325, 480, 14, 9, japaneseFont)
 
 
     /* ---------- 出力 ---------- */

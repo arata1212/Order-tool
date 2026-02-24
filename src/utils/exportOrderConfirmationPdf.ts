@@ -108,7 +108,46 @@ function drawSpacedTextJP(
     x += font.widthOfTextAtSize(char, size) + letterSpacing
   }
 }
+/* =========================
+   折り返し対応関数(その他備考用)
+========================= */
+function drawWrappedTextJP(
+  page: PDFPage,
+  text: string | null | undefined,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  size: number,
+  font: any
+) {
+  if (!text) return
 
+  const lines = String(text).split(/\r?\n/)
+  let currentY = y
+
+  for (const line of lines) {
+    let buffer = ''
+
+    for (const char of line) {
+      const test = buffer + char
+      const w = font.widthOfTextAtSize(test, size)
+
+      if (w > maxWidth) {
+        page.drawText(buffer, { x, y: currentY, size, font })
+        currentY -= lineHeight
+        buffer = char
+      } else {
+        buffer = test
+      }
+    }
+
+    if (buffer) {
+      page.drawText(buffer, { x, y: currentY, size, font })
+      currentY -= lineHeight
+    }
+  }
+}
 /* =========================
    PDF出力本体
 ========================= */
@@ -177,10 +216,9 @@ export async function exportOrderConfirmationPdf(
       { value: row.支払いサイト, x: 121, y: 607, size: 10 },
       { value: row.支払い, x: 51, y: 140, size: 10 },
 
-      // その他
-      { value: row.その他, x: 51, y: 87, size: 10 },
     ]
-
+    // その他
+    drawWrappedTextJP(page, row.その他, 51, 87, 480, 14, 10, japaneseFont)
     /* ---------- 一括描画 ---------- */
     pdfFields.forEach((f) => {
       drawTextJP(
