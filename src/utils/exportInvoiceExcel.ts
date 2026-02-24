@@ -68,12 +68,6 @@ export async function exportInvoiceExcel(
   setCell('C10', firstRow.支払日)
   setCell('C11', firstRow.納期)
   setCell('C12', firstRow.振込先)
-  
-  setCell('G18', firstRow.基準時間)
-  setCell('H18', firstRow.実働時間)
-  setCell('I18', firstRow.超過時間)
-  setCell('J18', firstRow.控除時間)
-  setCell('K18', firstRow.諸経費)
 
   setCell('B31', firstRow.特記事項)
 
@@ -99,6 +93,11 @@ export async function exportInvoiceExcel(
     setCell(`E${r}`, d.row.数量)
     setCell(`F${r}`, d.lineTotal)// 単価×数量
     setCell(`K${r}`, d.row.諸経費)
+
+    setCell(`G${r}`, d.row.基準時間)
+    setCell(`H${r}`, d.row.実働時間)
+    setCell(`I${r}`, d.row.超過時間)
+    setCell(`J${r}`, d.row.控除時間)
   })
 
 
