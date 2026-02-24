@@ -141,6 +141,29 @@ function drawMixedTextJP(
 }
 
 /* =========================
+   社印描画用
+========================= */
+async function drawSeal(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  x: number,
+  y: number,
+  size = 60
+) {
+  const sealRes = await fetch('/社印.png')
+  const sealBytes = await sealRes.arrayBuffer()
+  const sealImage = await pdfDoc.embedPng(sealBytes)
+
+  page.drawImage(sealImage, {
+    x,
+    y,
+    width: size,
+    height: size,
+    opacity: 0.9,
+  })
+}
+
+/* =========================
    PDF出力本体
 ========================= */
 export async function exportInvoicePdf(
@@ -178,8 +201,14 @@ export async function exportInvoicePdf(
     drawTextJP(page, settings.postCode, 418, 693, 8, japaneseFont)
     drawTextJP(page, settings.address, 409, 683, 8, japaneseFont)
     drawTextJP(page, settings.building, 409, 672, 8, japaneseFont)
-    drawTextJP(page, settings.tel, 429, 661.5, 8, japaneseFont)
-    drawTextJP(page, settings.inchage, 432, 650.5, 8, japaneseFont)
+    drawTextJP(page, settings.tel, 429, 661, 8, japaneseFont)
+    drawMixedTextJP(page, settings.num, 449, 650.1, 8, japaneseFont, monoFont)
+    drawTextJP(page, settings.inchage, 432, 638, 8, japaneseFont)
+
+    // ✅ 注文書・請求書のみ社印を表示
+    if (settings.documentType === 'order' || settings.documentType === 'invoice') {
+      await drawSeal(pdfDoc, page, 500, 647, 45)
+}
     
     /* ---------- PDF項目定義 ---------- */
       // 基本情報
@@ -221,8 +250,6 @@ export async function exportInvoicePdf(
 
     // 立替金（非課税）
     drawRightAlignedTextJP(page, advance.toLocaleString(), 550, 383, 9, japaneseFont)
-
-
       if (lineTotal !== null) {
         drawRightAlignedTextJP(page, lineTotal.toLocaleString(), 290, y, 9, japaneseFont)
       }

@@ -58,7 +58,8 @@ export async function exportInvoiceExcel(
   setCell('I9', settings.address)
   setCell('I10', settings.building)
   setCell('I11', settings.tel ? `TEL：${settings.tel}` : '')
-  setCell('I12', settings.inchage ? `担当：${settings.inchage}` : '')
+  setCell('I12', settings.tel ? `登録番号：${settings.num}` : '')
+  setCell('I13', settings.inchage ? `担当：${settings.inchage}` : '')
   
   // ② 基本情報
   setCell('B4', firstRow.請求先名 ? `${firstRow.請求先名}　御中` : "")

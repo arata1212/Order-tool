@@ -11,6 +11,7 @@ export function useTemplateSettings() {
     address: '東京都中央区築地2丁目12-20',
     building: 'ビルネット築地ビル4階A',
     tel: '03-6281-5088',
+    num: 'T9010001209498',
     inchage: '',
   })
 

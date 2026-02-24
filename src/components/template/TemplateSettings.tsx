@@ -1,4 +1,5 @@
-import  type { TemplateSettingsType } from "../../types/template"
+import { useEffect } from 'react'
+import type { TemplateSettingsType } from "../../types/template"
 
 type Props = {
   settings: TemplateSettingsType
@@ -7,6 +8,7 @@ type Props = {
 }
 
 export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
+
   const handleChange = (
     key: keyof TemplateSettingsType,
     value: string
@@ -16,8 +18,10 @@ export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
       [key]: value,
     })
   }
-  
-  const handleDocumentTypeChange = (type: TemplateSettingsType['documentType']) => {
+
+  const handleDocumentTypeChange = (
+    type: TemplateSettingsType['documentType']
+  ) => {
     setSettings({
       ...settings,
       documentType: type,
@@ -29,6 +33,27 @@ export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
           : '請求書',
     })
   }
+
+  // mode と settings の中身を同期
+  useEffect(() => {
+    if (mode === 'order') {
+      if (settings.documentType === 'invoice') {
+        setSettings(s => ({
+          ...s,
+          documentType: 'order',
+          title: '注文書',
+        }))
+      }
+    } else {
+      if (settings.documentType !== 'invoice') {
+        setSettings(s => ({
+          ...s,
+          documentType: 'invoice',
+          title: '請求書',
+        }))
+      }
+    }
+  }, [mode])
 
   return (
     <div className="template-card">
@@ -48,7 +73,6 @@ export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
           <option value="orderConfirmation">注文請書</option>
         </select>
       ) : (
-        // 請求書モードは固定表示（選ばせない）
         <div style={{ fontWeight: 'bold', padding: '6px 0' }}>
           帳票種別：請求書
         </div>
@@ -61,7 +85,7 @@ export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
         placeholder="タイトル"
       />
 
-      {/* ▼ 注文請書以外だけ表示（請求書も含む） */}
+      {/* ▼ 注文請書以外だけ表示 */}
       {settings.documentType !== 'orderConfirmation' && (
         <>
           <input
@@ -92,6 +116,12 @@ export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
             value={settings.tel}
             onChange={(e) => handleChange("tel", e.target.value)}
             placeholder="電話番号"
+          />
+
+          <input
+            value={settings.num}
+            onChange={(e) => handleChange("num", e.target.value)}
+            placeholder="登録番号"
           />
 
           <input

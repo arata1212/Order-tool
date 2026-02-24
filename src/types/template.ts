@@ -9,5 +9,6 @@ export type TemplateSettingsType = {
   address: string
   building: string
   tel: string
+  num: string
   inchage: string
 }

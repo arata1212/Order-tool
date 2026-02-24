@@ -109,7 +109,53 @@ function drawSpacedTextJP(
   }
 }
 
+ /* =========================
+   英数字用フォント
+========================= */
 
+function drawMixedTextJP(
+  page: PDFPage,
+  text: string | number | null | undefined,
+  x: number,
+  y: number,
+  size: number,
+  jpFont: any,
+  monoFont: any
+) {
+  if (!text) return
+
+  let cursorX = x
+
+  for (const char of String(text)) {
+    const font = /[0-9h\-]/.test(char) ? monoFont : jpFont
+    const w = font.widthOfTextAtSize(char, size)
+
+    page.drawText(char, { x: cursorX, y, size, font })
+    cursorX += w
+  }
+}
+/* =========================
+   社印描画用
+========================= */
+async function drawSeal(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  x: number,
+  y: number,
+  size = 60
+) {
+  const sealRes = await fetch('/社印.png')
+  const sealBytes = await sealRes.arrayBuffer()
+  const sealImage = await pdfDoc.embedPng(sealBytes)
+
+  page.drawImage(sealImage, {
+    x,
+    y,
+    width: size,
+    height: size,
+    opacity: 0.9,
+  })
+}
 /* =========================
    PDF出力本体
 ========================= */
@@ -129,11 +175,10 @@ export async function exportOrderPdf(
     pdfDoc.registerFontkit(fontkit)
 
     const fontRes = await fetch('/NotoSansJP-Regular.ttf')
-    if (!fontRes.ok) throw new Error('フォント取得失敗')
+    const japaneseFont = await pdfDoc.embedFont(await fontRes.arrayBuffer())
 
-    const japaneseFont = await pdfDoc.embedFont(
-      await fontRes.arrayBuffer()
-    )
+    const monoFontRes = await fetch('/RobotoMono-Regular.ttf')
+    const monoFont = await pdfDoc.embedFont(await monoFontRes.arrayBuffer())
 
     const page = pdfDoc.getPages()[0]
 
@@ -146,8 +191,15 @@ export async function exportOrderPdf(
     drawTextJP(page, settings.postCode, 390, 662, 11, japaneseFont)
     drawTextJP(page, settings.address, 380, 643, 11, japaneseFont)
     drawTextJP(page, settings.building, 380, 625, 11, japaneseFont)
-    drawTextJP(page, settings.tel, 410, 608, 11, japaneseFont)
-    drawTextJP(page, settings.inchage, 411, 589, 11, japaneseFont)
+    drawTextJP(page, settings.tel, 411, 607.1, 11, japaneseFont)
+    drawMixedTextJP(page, settings.num, 435, 588.6, 11, japaneseFont, monoFont)
+    drawTextJP(page, settings.inchage, 412, 570.8, 11, japaneseFont)
+    
+    // ✅ 注文書・請求書のみ社印を表示
+    if (settings.documentType === 'order' || settings.documentType === 'invoice') {
+      await drawSeal(pdfDoc, page, 500, 585, 70)
+    }
+
     /* ---------- 計算 ---------- */
     const items = [
       {

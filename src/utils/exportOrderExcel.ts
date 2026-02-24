@@ -36,7 +36,10 @@ export async function exportOrderExcel(
   sheet.getCell("F9").value = settings.tel
   ? `TEL：${settings.tel}`
   : ''
-  sheet.getCell("F10").value = settings.inchage
+  sheet.getCell("F10").value = settings.num
+  ? `登録番号：${settings.num}`
+  : ''
+  sheet.getCell("F11").value = settings.inchage
   ? `担当：${settings.inchage}`
   : ''
 
