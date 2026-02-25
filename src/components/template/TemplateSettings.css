@@ -1,0 +1,55 @@
+.template-card.compact {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #4b5883;
+  font-size: 12px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+/* 3カラム行 */
+.row-3col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* 各フィールド */
+.field {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 4px;
+  align-items: center;
+  min-width: 0;             /* ★ これが超重要 */
+}
+
+.label {
+  color: #ffffff;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* input / select */
+.template-card input,
+.template-card select {
+  width: 100%;
+  min-width: 0;             /* ★ これが無いと縮まない */
+  box-sizing: border-box;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-weight: bold;
+  font-size: 11px;
+}

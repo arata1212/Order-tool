@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { TemplateSettingsType } from "../../types/template"
+import './TemplateSettings.css'
 
 type Props = {
   settings: TemplateSettingsType
@@ -34,7 +35,6 @@ export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
     })
   }
 
-  // mode と settings の中身を同期
   useEffect(() => {
     if (mode === 'order') {
       if (settings.documentType === 'invoice') {
@@ -56,10 +56,11 @@ export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
   }, [mode])
 
   return (
-    <div className="template-card">
-      <h3>帳票設定</h3>
-
-      {/* ▼ 帳票種別 */}
+    <div className="template-card compact">
+  {/* 1行目：帳票種別 + タイトル + 担当 */}
+  <div className="row row-3col">
+    <div className="field">
+      <span className="label">帳票</span>
       {mode === 'order' ? (
         <select
           value={settings.documentType}
@@ -73,64 +74,83 @@ export const TemplateSettings = ({ settings, setSettings, mode }: Props) => {
           <option value="orderConfirmation">注文請書</option>
         </select>
       ) : (
-        <div style={{ fontWeight: 'bold', padding: '6px 0' }}>
-          帳票種別：請求書
-        </div>
+        <span className="badge">請求書</span>
       )}
+    </div>
 
-      {/* ▼ タイトル */}
+    <div className="field">
+      <span className="label">タイトル</span>
       <input
         value={settings.title}
         onChange={(e) => handleChange("title", e.target.value)}
-        placeholder="タイトル"
+        placeholder="注文書 / 請求書"
       />
-
-      {/* ▼ 注文請書以外だけ表示 */}
-      {settings.documentType !== 'orderConfirmation' && (
-        <>
-          <input
-            value={settings.companyName}
-            onChange={(e) => handleChange("companyName", e.target.value)}
-            placeholder="会社名"
-          />
-
-          <input
-            value={settings.postCode}
-            onChange={(e) => handleChange("postCode", e.target.value)}
-            placeholder="郵便番号"
-          />
-
-          <input
-            value={settings.address}
-            onChange={(e) => handleChange("address", e.target.value)}
-            placeholder="住所"
-          />
-
-          <input
-            value={settings.building}
-            onChange={(e) => handleChange("building", e.target.value)}
-            placeholder="建物名"
-          />
-
-          <input
-            value={settings.tel}
-            onChange={(e) => handleChange("tel", e.target.value)}
-            placeholder="電話番号"
-          />
-
-          <input
-            value={settings.num}
-            onChange={(e) => handleChange("num", e.target.value)}
-            placeholder="登録番号"
-          />
-
-          <input
-            value={settings.inchage}
-            onChange={(e) => handleChange("inchage", e.target.value)}
-            placeholder="担当"
-          />
-        </>
-      )}
     </div>
-  )
+
+    <div className="field">
+      <span className="label">担当</span>
+      <input
+        value={settings.inchage}
+        onChange={(e) => handleChange("inchage", e.target.value)}
+        placeholder="担当者名"
+      />
+    </div>
+  </div>
+
+  {/* 会社情報（折りたたみ） */}
+  {settings.documentType !== 'orderConfirmation' && (
+    <details>
+      <summary>会社情報（詳細）</summary>
+
+      <div className="row">
+        <span className="label">会社名</span>
+        <input
+          value={settings.companyName}
+          onChange={(e) => handleChange("companyName", e.target.value)}
+        />
+      </div>
+
+      <div className="row">
+        <span className="label">郵便番号</span>
+        <input
+          value={settings.postCode}
+          onChange={(e) => handleChange("postCode", e.target.value)}
+        />
+      </div>
+
+      <div className="row">
+        <span className="label">住所</span>
+        <input
+          value={settings.address}
+          onChange={(e) => handleChange("address", e.target.value)}
+        />
+      </div>
+
+      <div className="row">
+        <span className="label">建物</span>
+        <input
+          value={settings.building}
+          onChange={(e) => handleChange("building", e.target.value)}
+        />
+      </div>
+
+      <div className="row">
+        <span className="label">電話番号</span>
+        <input
+          value={settings.tel}
+          onChange={(e) => handleChange("tel", e.target.value)}
+        />
+      </div>
+
+      <div className="row">
+        <span className="label">登録番号</span>
+        <input
+          value={settings.num}
+          onChange={(e) => handleChange("num", e.target.value)}
+        />
+      </div>
+    </details>
+  )}
+</div>
+)
 }

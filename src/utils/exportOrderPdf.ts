@@ -263,13 +263,13 @@ export async function exportOrderPdf(
 
       // 勤務条件系
       { value: row.単位, x: 355, y: 498, size: 10 },
-      { value: row.勤務条件, x: 125, y: 262, size: 10 },
-      { value: row.勤務時間, x: 125, y: 245, size: 10 },
+      { value: row.勤務条件, x: 125, y: 262.5, size: 10 },
+      { value: row.勤務時間, x: 125, y: 245.5, size: 10 },
 
       // 清算条件
-      { value: row.清算幅, x: 125, y: 226, size: 10 },
-      { value: row.清算単価, x: 125, y: 208, size: 10 },
-      { value: row.清算単位, x: 125, y: 190, size: 10 },
+      { value: row.清算幅, x: 125, y: 226.5, size: 10 },
+      { value: row.清算単価, x: 125, y: 208.5, size: 10 },
+      { value: row.清算単位, x: 125, y: 190.5, size: 10 },
 
       // 支払い条件
       { value: row.支払いサイト, x: 121, y: 607, size: 10 },

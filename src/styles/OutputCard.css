@@ -26,7 +26,49 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
+/* step2用途切り替えボタン */
+.mode-select {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
 
+.mode-button {
+  flex: 1;
+  padding: 16px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.mode-icon {
+  font-size: 28px;
+}
+
+.mode-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+/* step2のstylehover時 */
+.mode-button {
+  background: #f3f4f6;
+  color: #333;
+}
+
+.mode-button:hover {
+  background: #e5e7eb;
+}
+
+.mode-button.is-active {
+  background: #111827;
+  color: #fff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+}
 /* hover時 */
 .output-button:hover {
   transform: translateY(-2px);
