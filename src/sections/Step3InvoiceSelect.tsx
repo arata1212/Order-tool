@@ -2,6 +2,7 @@ import Section from '../layout/Section'
 import * as XLSX from 'xlsx'
 import { styles } from '../styles/appStyles'
 import type { WorkRow } from '../types/workRow'
+import SheetSelector from '../components/SheetSelector'
 
 type Props = {
   rows: WorkRow[]
@@ -37,28 +38,13 @@ export const Step3InvoiceSelect = ({
   return (
     <Section title="STEP 3｜請求先・要員選択（請求書）">
 
-      {workbook && (
-        <div style={{ marginBottom: 12 }}>
-          <label>📄 参照するシート：</label>
-          <select
-            value={selectedSheet}
-            onChange={(e) => {
-              const name = e.target.value
-              setSelectedSheet(name)
-
-              const sheet = workbook.Sheets[name]
-              const json = XLSX.utils.sheet_to_json<WorkRow>(sheet)
-              setRows(json)
-            }}
-          >
-            {sheetNames.map(name => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      <SheetSelector
+        workbook={workbook}
+        sheetNames={sheetNames}
+        selectedSheet={selectedSheet}
+        setSelectedSheet={setSelectedSheet}
+        setRows={setRows}
+      />
 
       <select
         style={styles.select}

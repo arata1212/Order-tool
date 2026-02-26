@@ -8,6 +8,7 @@ import { Step3OrderSelect } from './sections/Step3OrderSelect'
 import { Step3InvoiceSelect } from './sections/Step3InvoiceSelect'
 import { Step4Output } from './sections/Step4Output'
 
+
 import { useTemplateSettings } from './hooks/useTemplateSettings'
 import { styles } from './styles/appStyles'
 import './App.css'
@@ -75,6 +76,11 @@ function App() {
             memberNames={memberNames}
             selectedName={selectedName}
             onChange={setSelectedName}
+            workbook={workbook}
+            sheetNames={sheetNames}
+            selectedSheet={selectedSheet}
+            setSelectedSheet={setSelectedSheet}
+            setRows={setRows}
           />
         )}
 
